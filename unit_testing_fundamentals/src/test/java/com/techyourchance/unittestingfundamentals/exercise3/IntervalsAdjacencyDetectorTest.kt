@@ -21,15 +21,20 @@ class IntervalsAdjacencyDetectorTest {
     assertTestFalse(-10, -5, -3, -2)
     assertTestFalse(-10, -5, -3, 5)
     assertTestFalse(-10, -5, 1, 5)
+    assertTestFalse(-10, -5, 0, 5)
+    assertTestFalse(-10, 0, 1, 5)
   }
 
   // interval1 adjacent interval 2 on the left
   @Test
-  fun isAdjacent_interval1AdjacentInterval2_true() {
+  fun isAdjacent_interval1AdjacentInterval2OnLeft_true() {
     assertTestTrue(1, 2, 2, 6)
     assertTestTrue(-10, -5, -5, -2)
     assertTestTrue(-10, -3, -3, 5)
     assertTestTrue(-10, 1, 1, 5)
+    assertTestTrue(-10, 0, 0, 5)
+    assertTestTrue(0, 5, 5, 6)
+    assertTestTrue(-10, -5, -5, 0)
   }
 
   // interval1 is in interval 2 on the left edge
@@ -39,6 +44,9 @@ class IntervalsAdjacencyDetectorTest {
     assertTestFalse(-10, -5, -10, -2)
     assertTestFalse(-5, -3, -5, 5)
     assertTestFalse(-5, 2, -5, 5)
+    assertTestFalse(-5, 0, -5, 5)
+    assertTestFalse(-5, -2, -5, 0)
+    assertTestFalse(0, 4, 0, 6)
   }
 
   // interval1 is in interval 2 without touching edges
@@ -49,6 +57,10 @@ class IntervalsAdjacencyDetectorTest {
     assertTestFalse(-5, -3, -10, 5)
     assertTestFalse(-2, 2, -10, 10)
     assertTestFalse(5, 6, 1, 10)
+    assertTestFalse(-5, 0, -10, 1)
+    assertTestFalse(0, 4, -10, 6)
+    assertTestFalse(1, 4, 0, 6)
+    assertTestFalse(-2, -1, -5, 0)
   }
 
   // interval1 and interval 2 are the same
@@ -57,7 +69,9 @@ class IntervalsAdjacencyDetectorTest {
     assertTestFalse(1, 2, 1, 2)
     assertTestFalse(-10, -5, -10, -5)
     assertTestFalse(-5, -3, -5, -3)
-    assertTestFalse(-2, 2, -10, 10)
+    assertTestFalse(-2, 2, -2, 2)
+    assertTestFalse(-2, 0, -2, 0)
+    assertTestFalse(0, 5, 0, 5)
   }
 
   // interval1 is in interval 2 on the right edge
@@ -66,6 +80,9 @@ class IntervalsAdjacencyDetectorTest {
     assertTestFalse(4, 5, 1, 5)
     assertTestFalse(-8, -5, -10, -5)
     assertTestFalse(-5, 1, -10, 1)
+    assertTestFalse(-5, 0, -10, 0)
+    assertTestFalse(0, 4, -1, 4)
+    assertTestFalse(2, 4, 0, 4)
   }
 
   // interval1 adjacent interval 2 on the right
@@ -75,6 +92,9 @@ class IntervalsAdjacencyDetectorTest {
     assertTestTrue(-5, -2, -10, -5)
     assertTestTrue(-3, 5, -10, -3)
     assertTestTrue(1, 5, -10, 1)
+    assertTestTrue(0, 6, -10, 0)
+    assertTestTrue(10, 16, 0, 10)
+    assertTestTrue(-10, 0, -20, -10)
   }
 
   // interval1 is after interval 2
@@ -84,6 +104,8 @@ class IntervalsAdjacencyDetectorTest {
     assertTestFalse( -3, -2, -10, -5)
     assertTestFalse(-3, 5, -10, -5)
     assertTestFalse(1, 5, -10, -5)
+    assertTestFalse(0, 5, -10, -5)
+    assertTestFalse(1, 5, -10, 0)
   }
 
   // interval1 contains interval 2 on the left edge
@@ -93,6 +115,9 @@ class IntervalsAdjacencyDetectorTest {
     assertTestFalse(-10, -2, -10, -5)
     assertTestFalse(-5, 5, -5, -3)
     assertTestFalse(-5, 5, -5, 2)
+    assertTestFalse(-5, 5, -5, 0)
+    assertTestFalse(-5, 0, -5, -2)
+    assertTestFalse(0, 6, 0, 4)
   }
 
   // interval1 contains interval 2 on the right edge
@@ -101,6 +126,9 @@ class IntervalsAdjacencyDetectorTest {
     assertTestFalse(1, 5, 4, 5)
     assertTestFalse(-10, -5, -8, -5)
     assertTestFalse(-10, 1, -5, 1)
+    assertTestTrue(-10, 0, 0, 6)
+    assertTestTrue(0, 10, 10, 16)
+    assertTestTrue(-20, -10, -10, 0)
   }
 
   // interval 1 contains interval 2 without touching edges
@@ -111,6 +139,10 @@ class IntervalsAdjacencyDetectorTest {
     assertTestFalse(-10, 5, -5, -3)
     assertTestFalse(-10, 10, -2, 2)
     assertTestFalse(1, 10, 5, 6)
+    assertTestFalse(-10, 1, -5, 0)
+    assertTestFalse(-10, 6, 0, 4)
+    assertTestFalse(0, 6, 1, 4)
+    assertTestFalse(-5, 0, -2, -1)
   }
 
   private fun assertTestTrue(start1: Int, end1: Int, start2: Int, end2: Int) {
