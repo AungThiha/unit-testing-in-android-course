@@ -69,36 +69,6 @@ class FetchUserUseCaseSyncImplTest {
   }
 
   @Test
-  fun fetchUserSync_noCacheAndAuthError_failureReturned() {
-    noCache()
-    authError()
-
-    val result = SUT.fetchUserSync(USER_ID)
-
-    assertEquals(FetchUserUseCaseSync.Status.FAILURE, result.status)
-  }
-
-  @Test
-  fun fetchUserSync_noCacheAndGeneralError_failureReturned() {
-    noCache()
-    generalError()
-
-    val result = SUT.fetchUserSync(USER_ID)
-
-    assertEquals(FetchUserUseCaseSync.Status.FAILURE, result.status)
-  }
-
-  @Test
-  fun fetchUserSync_noCacheAndNetworkError_networkErrorReturned() {
-    noCache()
-    networkError()
-
-    val result = SUT.fetchUserSync(USER_ID)
-
-    assertEquals(FetchUserUseCaseSync.Status.NETWORK_ERROR, result.status)
-  }
-
-  @Test
   fun fetchUserSync_noCacheAndSuccess_userCached() {
     noCache()
     success()
@@ -110,36 +80,6 @@ class FetchUserUseCaseSyncImplTest {
     val user = argumentCaptor.value
     assertEquals(USER_ID, user.userId)
     assertEquals(USERNAME, user.username)
-  }
-
-  @Test
-  fun fetchUserSync_noCacheAndAuthError_userNotCached() {
-    noCache()
-    authError()
-
-    val result = SUT.fetchUserSync(USER_ID)
-
-    verify(usersCacheMock, never()).cacheUser(any(User::class.java))
-  }
-
-  @Test
-  fun fetchUserSync_noCacheAndGeneralError_userNotCached() {
-    noCache()
-    generalError()
-
-    val result = SUT.fetchUserSync(USER_ID)
-
-    verify(usersCacheMock, never()).cacheUser(any(User::class.java))
-  }
-
-  @Test
-  fun fetchUserSync_noCacheAndNetworkError_userNotCached() {
-    noCache()
-    networkError()
-
-    val result = SUT.fetchUserSync(USER_ID)
-
-    verify(usersCacheMock, never()).cacheUser(any(User::class.java))
   }
 
   @Test
@@ -157,6 +97,26 @@ class FetchUserUseCaseSyncImplTest {
   }
 
   @Test
+  fun fetchUserSync_noCacheAndAuthError_failureReturned() {
+    noCache()
+    authError()
+
+    val result = SUT.fetchUserSync(USER_ID)
+
+    assertEquals(FetchUserUseCaseSync.Status.FAILURE, result.status)
+  }
+
+  @Test
+  fun fetchUserSync_noCacheAndAuthError_userNotCached() {
+    noCache()
+    authError()
+
+    val result = SUT.fetchUserSync(USER_ID)
+
+    verify(usersCacheMock, never()).cacheUser(any(User::class.java))
+  }
+
+  @Test
   fun fetchUserSync_noCacheAndAuthError_userNullReturned() {
     noCache()
     authError()
@@ -167,6 +127,36 @@ class FetchUserUseCaseSyncImplTest {
   }
 
   @Test
+  fun fetchUserSync_noCacheAndGeneralError_failureReturned() {
+    noCache()
+    generalError()
+
+    val result = SUT.fetchUserSync(USER_ID)
+
+    assertEquals(FetchUserUseCaseSync.Status.FAILURE, result.status)
+  }
+
+  @Test
+  fun fetchUserSync_noCacheAndGeneralError_userNotCached() {
+    noCache()
+    generalError()
+
+    val result = SUT.fetchUserSync(USER_ID)
+
+    verify(usersCacheMock, never()).cacheUser(any(User::class.java))
+  }
+
+  @Test
+  fun fetchUserSync_noCacheAndNetworkError_networkErrorReturned() {
+    noCache()
+    networkError()
+
+    val result = SUT.fetchUserSync(USER_ID)
+
+    assertEquals(FetchUserUseCaseSync.Status.NETWORK_ERROR, result.status)
+  }
+
+  @Test
   fun fetchUserSync_noCacheAndGeneralError_userNullReturned() {
     noCache()
     generalError()
@@ -174,6 +164,16 @@ class FetchUserUseCaseSyncImplTest {
     val result = SUT.fetchUserSync(USER_ID)
 
     assertNull(result.user)
+  }
+
+  @Test
+  fun fetchUserSync_noCacheAndNetworkError_userNotCached() {
+    noCache()
+    networkError()
+
+    val result = SUT.fetchUserSync(USER_ID)
+
+    verify(usersCacheMock, never()).cacheUser(any(User::class.java))
   }
 
   @Test
@@ -201,11 +201,18 @@ class FetchUserUseCaseSyncImplTest {
   }
 
   @Test
+  fun fetchUserSync_withCache_successReturned() {
+    withCache()
+
+    val result = SUT.fetchUserSync(USER_ID)
+    assertEquals(USER, result.user)
+  }
+
+  @Test
   fun fetchUserSync_withCache_userReturned() {
     withCache()
 
     val result = SUT.fetchUserSync(USER_ID)
-    assertEquals(FetchUserUseCaseSync.Status.SUCCESS, result.status)
     assertEquals(USER, result.user)
   }
 
