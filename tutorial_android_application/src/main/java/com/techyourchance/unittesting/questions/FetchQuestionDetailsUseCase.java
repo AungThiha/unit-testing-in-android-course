@@ -5,6 +5,8 @@ import com.techyourchance.unittesting.common.time.TimeProvider;
 import com.techyourchance.unittesting.networking.questions.FetchQuestionDetailsEndpoint;
 import com.techyourchance.unittesting.networking.questions.QuestionSchema;
 
+import java.util.HashMap;
+
 public class FetchQuestionDetailsUseCase extends BaseObservable<FetchQuestionDetailsUseCase.Listener> {
 
     public static final long TIMEOUT_MILLISECONDS = 60 * 1000;
@@ -16,8 +18,7 @@ public class FetchQuestionDetailsUseCase extends BaseObservable<FetchQuestionDet
 
     private final FetchQuestionDetailsEndpoint mFetchQuestionDetailsEndpoint;
     private final TimeProvider mTimeProvider;
-    private long lastSavedTime = 0;
-    private QuestionDetails lastFetchedQuestionDetails = null;
+    private HashMap<String, QuestionDetailsCache> cacheList = new HashMap<>();
 
     public FetchQuestionDetailsUseCase(FetchQuestionDetailsEndpoint fetchQuestionDetailsEndpoint,
                                        TimeProvider timeProvider) {
@@ -26,20 +27,23 @@ public class FetchQuestionDetailsUseCase extends BaseObservable<FetchQuestionDet
     }
 
     public void fetchQuestionDetailsAndNotify(String questionId) {
-        if (lastFetchedQuestionDetails != null && mTimeProvider.getCurrentTimestamp() - lastSavedTime < TIMEOUT_MILLISECONDS) {
-            notifySuccess(lastFetchedQuestionDetails);
+        QuestionDetailsCache cache = cacheList.get(questionId);
+        if (cache != null && mTimeProvider.getCurrentTimestamp() - cache.getSavedWhen() < TIMEOUT_MILLISECONDS) {
+            notifySuccess(cache.getQuestionDetails());
         } else {
-            lastFetchedQuestionDetails = null;
+            cacheList.remove(questionId);
             mFetchQuestionDetailsEndpoint.fetchQuestionDetails(questionId, new FetchQuestionDetailsEndpoint.Listener() {
                 @Override
                 public void onQuestionDetailsFetched(QuestionSchema question) {
-                    lastFetchedQuestionDetails = new QuestionDetails(
+                    QuestionDetails questionDetails = new QuestionDetails(
                             question.getId(),
                             question.getTitle(),
                             question.getBody()
                     );
-                    lastSavedTime = mTimeProvider.getCurrentTimestamp();
-                    notifySuccess(lastFetchedQuestionDetails);
+                    cacheList.put(
+                            questionDetails.getId(), new QuestionDetailsCache(mTimeProvider.getCurrentTimestamp(), questionDetails)
+                    );
+                    notifySuccess(questionDetails);
                 }
 
                 @Override
