@@ -7,6 +7,8 @@ import com.techyourchance.unittesting.networking.questions.QuestionSchema;
 
 public class FetchQuestionDetailsUseCase extends BaseObservable<FetchQuestionDetailsUseCase.Listener> {
 
+    public static final long TIMEOUT_MILLISECONDS = 60 * 1000;
+
     public interface Listener {
         void onQuestionDetailsFetched(QuestionDetails questionDetails);
         void onQuestionDetailsFetchFailed();
@@ -14,6 +16,8 @@ public class FetchQuestionDetailsUseCase extends BaseObservable<FetchQuestionDet
 
     private final FetchQuestionDetailsEndpoint mFetchQuestionDetailsEndpoint;
     private final TimeProvider mTimeProvider;
+    private long lastSavedTime = 0;
+    private QuestionDetails lastFetchedQuestionDetails = null;
 
     public FetchQuestionDetailsUseCase(FetchQuestionDetailsEndpoint fetchQuestionDetailsEndpoint,
                                        TimeProvider timeProvider) {
@@ -22,18 +26,28 @@ public class FetchQuestionDetailsUseCase extends BaseObservable<FetchQuestionDet
     }
 
     public void fetchQuestionDetailsAndNotify(String questionId) {
-        mFetchQuestionDetailsEndpoint.fetchQuestionDetails(questionId, new FetchQuestionDetailsEndpoint.Listener() {
-            @Override
-            public void onQuestionDetailsFetched(QuestionSchema question) {
-                notifySuccess(question);
+        if (lastFetchedQuestionDetails != null && mTimeProvider.getCurrentTimestamp() - lastSavedTime < TIMEOUT_MILLISECONDS) {
+            notifySuccess(lastFetchedQuestionDetails);
+        } else {
+            lastFetchedQuestionDetails = null;
+            mFetchQuestionDetailsEndpoint.fetchQuestionDetails(questionId, new FetchQuestionDetailsEndpoint.Listener() {
+                @Override
+                public void onQuestionDetailsFetched(QuestionSchema question) {
+                    lastFetchedQuestionDetails = new QuestionDetails(
+                            question.getId(),
+                            question.getTitle(),
+                            question.getBody()
+                    );
+                    lastSavedTime = mTimeProvider.getCurrentTimestamp();
+                    notifySuccess(lastFetchedQuestionDetails);
+                }
 
-            }
-
-            @Override
-            public void onQuestionDetailsFetchFailed() {
-                notifyFailure();
-            }
-        });
+                @Override
+                public void onQuestionDetailsFetchFailed() {
+                    notifyFailure();
+                }
+            });
+        }
     }
 
     private void notifyFailure() {
@@ -42,14 +56,9 @@ public class FetchQuestionDetailsUseCase extends BaseObservable<FetchQuestionDet
         }
     }
 
-    private void notifySuccess(QuestionSchema questionSchema) {
+    private void notifySuccess(QuestionDetails questionDetails) {
         for (Listener listener : getListeners()) {
-            listener.onQuestionDetailsFetched(
-                    new QuestionDetails(
-                            questionSchema.getId(),
-                            questionSchema.getTitle(),
-                            questionSchema.getBody()
-                    ));
+            listener.onQuestionDetailsFetched(questionDetails);
         }
     }
 }

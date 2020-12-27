@@ -7,9 +7,10 @@ import com.nhaarman.mockitokotlin2.mock
 import com.techyourchance.unittesting.common.time.TimeProvider
 import com.techyourchance.unittesting.networking.questions.FetchQuestionDetailsEndpoint
 import com.techyourchance.unittesting.networking.questions.QuestionSchema
+import com.techyourchance.unittesting.questions.FetchQuestionDetailsUseCase.TIMEOUT_MILLISECONDS
 import org.junit.Before
 import org.junit.Test
-import org.mockito.Mockito.verify
+import org.mockito.Mockito.*
 
 class FetchQuestionDetailsUseCaseTest {
 
@@ -67,7 +68,55 @@ class FetchQuestionDetailsUseCaseTest {
         verify(listener2).onQuestionDetailsFetchFailed()
     }
 
-    // region helps
+    @Test
+    fun previousValuesWithinTimeout_fetchQuestionDetailsAndNotify_sameValuesReturned() {
+        success()
+        SUT.registerListener(listener1)
+        SUT.registerListener(listener2)
+        `when`(timeProvider.currentTimestamp).thenReturn(100)
+        SUT.fetchQuestionDetailsAndNotify(QUESTION_ID)
+        `when`(timeProvider.currentTimestamp).thenReturn(100 + TIMEOUT_MILLISECONDS - 1)
+
+        SUT.fetchQuestionDetailsAndNotify(QUESTION_ID)
+
+        verify(listener1, times(2)).onQuestionDetailsFetched(QUESTION_DETAILS)
+        verify(listener2, times(2)).onQuestionDetailsFetched(QUESTION_DETAILS)
+        verify(fetchQuestionDetailsEndpoint, times(1)).fetchQuestionDetails(eq(QUESTION_ID), any())
+    }
+
+    @Test
+    fun previousValuesEqualsTimeout_fetchQuestionDetailsAndNotify_sameValuesReturned() {
+        success()
+        SUT.registerListener(listener1)
+        SUT.registerListener(listener2)
+        `when`(timeProvider.currentTimestamp).thenReturn(100)
+        SUT.fetchQuestionDetailsAndNotify(QUESTION_ID)
+        `when`(timeProvider.currentTimestamp).thenReturn(100 + TIMEOUT_MILLISECONDS)
+
+        SUT.fetchQuestionDetailsAndNotify(QUESTION_ID)
+
+        verify(listener1, times(2)).onQuestionDetailsFetched(QUESTION_DETAILS)
+        verify(listener2, times(2)).onQuestionDetailsFetched(QUESTION_DETAILS)
+        verify(fetchQuestionDetailsEndpoint, times(2)).fetchQuestionDetails(eq(QUESTION_ID), any())
+    }
+
+    @Test
+    fun previousValuesMoreThanTimeout_fetchQuestionDetailsAndNotify_sameValuesReturned() {
+        success()
+        SUT.registerListener(listener1)
+        SUT.registerListener(listener2)
+        `when`(timeProvider.currentTimestamp).thenReturn(100)
+        SUT.fetchQuestionDetailsAndNotify(QUESTION_ID)
+        `when`(timeProvider.currentTimestamp).thenReturn(100 + TIMEOUT_MILLISECONDS + 1)
+
+        SUT.fetchQuestionDetailsAndNotify(QUESTION_ID)
+
+        verify(listener1, times(2)).onQuestionDetailsFetched(QUESTION_DETAILS)
+        verify(listener2, times(2)).onQuestionDetailsFetched(QUESTION_DETAILS)
+        verify(fetchQuestionDetailsEndpoint, times(2)).fetchQuestionDetails(eq(QUESTION_ID), any())
+    }
+
+    // region helpers
 
     private fun failure() {
         doAnswer {
